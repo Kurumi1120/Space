@@ -1,1 +1,39 @@
+def rc4(key, data):
+    # 初始 S-Box
+    S = list(range(256))
+    j = 0
+    key = key.encode('utf-8')  # Key轉 UTF-8 
+    key_length = len(key)    
 
+    # KSA
+    for i in range(256):
+        j = (j + S[i] + key[i % key_length]) % 256  #混合金鑰與 S BOX
+        S[i], S[j] = S[j], S[i]  # 交換打亂
+
+    # PRGA
+    i = j = 0
+    keystream = []
+    # 處理字串
+    data_bytes = data if isinstance(data, bytes) else data.encode("utf-8")
+    for byte in data_bytes:
+        i = (i + 1) % 256
+        j = (j + S[i]) % 256
+        S[i], S[j] = S[j], S[i]  # 交換打亂
+        k = S[(S[i] + S[j]) % 256]
+        keystream.append(k)
+
+    # XOR
+    result = bytes(a ^ b for a, b in zip(data_bytes, keystream))
+    return result
+
+# 輸入測試
+key = input("Enter the key: ")
+plaintext = input("Enter the string to encrypt: ")
+
+# 加解密
+encrypted = rc4(key, plaintext)
+decrypted = rc4(key, encrypted)
+
+# 輸出
+print(f"Encrypted Ciphertext: {encrypted.hex()}")
+print(f"Decrypted String: {decrypted.decode('utf-8', errors='ignore')}")
